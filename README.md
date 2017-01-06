@@ -1,7 +1,3 @@
-# sbt-jenkins-control
+# sbt-aws-docker
 
-An SBT plugin for remote control of Jenkins. Work in progress.
-
-## Goals
-
-- Build Jenkins jobs from SBT
+An SBT plugin for deploying Dockerized apps to AWS Elastic Beanstalk.
