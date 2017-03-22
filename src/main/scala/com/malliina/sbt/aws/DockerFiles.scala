@@ -7,7 +7,7 @@ object DockerFiles {
 
   def workDir(dir: String) = Cmd("WORKDIR", dir)
 
-  def makeExec(script: String) = ExecCmd("RUN", "chmod" :: "u+x" :: script :: Nil: _*)
+  def makeExec(script: String) = execRun("chmod" :: "u+x" :: script :: Nil)
 
   def expose(ports: Seq[Int]) = Cmd("EXPOSE", ports.mkString(" "))
 
@@ -23,5 +23,7 @@ object DockerFiles {
   }
 
   def makeChown(daemonUser: String, daemonGroup: String, directories: Seq[String]): CmdLike =
-    ExecCmd("RUN", "chown" :: "-R" :: s"$daemonUser:$daemonGroup" :: directories.toList: _*)
+    execRun("chown" :: "-R" :: s"$daemonUser:$daemonGroup" :: directories.toList)
+
+  def execRun(cmd: Seq[String]) = ExecCmd("RUN", cmd: _*)
 }

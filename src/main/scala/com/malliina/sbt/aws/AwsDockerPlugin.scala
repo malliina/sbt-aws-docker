@@ -31,11 +31,16 @@ object AwsDockerPlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(
     dockerBaseDir := (defaultLinuxInstallLocation in Docker).value,
     dockerExposedPorts := Seq(9000),
+    dockerBaseImage := "openjdk:8-jre-alpine",
+    dockerFileInit := Seq(
+      from(dockerBaseImage.value),
+      execRun("apk" :: "update" :: Nil),
+      execRun("apk" :: "add" :: "bash" :: Nil)
+    ),
     dockerCommands := {
       val user = (daemonUser in Docker).value
       val group = (daemonGroup in Docker).value
-      Seq(
-        from(dockerBaseImage.value),
+      dockerFileInit.value ++ Seq(
         workDir(dockerBaseDir.value),
         makeAdd(dockerBaseDir.value),
         makeChown(user, group, Seq(".")),

@@ -1,5 +1,6 @@
 package com.malliina.sbt.aws
 
+import com.typesafe.sbt.packager.docker.CmdLike
 import sbt._
 
 object AwsDockerKeys extends AwsDockerKeys
@@ -8,6 +9,7 @@ trait AwsDockerKeys {
   val logger = taskKey[Logger]("Logger helper")
 
   // Docker keys
+  val dockerFileInit = settingKey[Seq[CmdLike]]("The first lines in the Dockerfile.")
   val dockerBaseDir = settingKey[String]("WORKDIR")
   val dockerExecutable = settingKey[String]("Docker executable script")
   val dockerZip = taskKey[File]("Zips the app")
