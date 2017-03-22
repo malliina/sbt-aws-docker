@@ -5,7 +5,7 @@ object BuildBuild {
 
   lazy val settings = sbtPlugins ++ Seq(
     scalaVersion := "2.10.6",
-    ivyResolver("malliina bintray sbt", url("https://dl.bintray.com/malliina/sbt-plugins/"))
+    resolvers += ivyResolver("malliina bintray sbt", url("https://dl.bintray.com/malliina/sbt-plugins/"))
   )
 
   def ivyResolver(name: String, repoUrl: sbt.URL) =
