@@ -11,6 +11,6 @@ object BuildBuild {
     Resolver.url(name, repoUrl)(Resolver.ivyStylePatterns)
 
   def sbtPlugins = Seq(
-    "me.lessis" % "bintray-sbt" % "0.3.0"
+    "com.malliina" %% "sbt-utils" % "0.6.1"
   ) map addSbtPlugin
 }

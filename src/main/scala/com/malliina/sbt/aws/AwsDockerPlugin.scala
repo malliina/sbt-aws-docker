@@ -3,10 +3,11 @@ package com.malliina.sbt.aws
 import java.nio.charset.StandardCharsets
 
 import com.malliina.sbt.aws.AwsDockerKeys._
+import com.malliina.sbt.aws.DockerFiles._
 import com.typesafe.sbt.packager.Keys._
 import com.typesafe.sbt.packager.MappingsHelper
+import com.typesafe.sbt.packager.docker.DockerPlugin
 import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport.Docker
-import com.typesafe.sbt.packager.docker.{Cmd, CmdLike, DockerPlugin, ExecCmd}
 import com.typesafe.sbt.packager.universal.Archives
 import org.apache.commons.io.FilenameUtils
 import sbt.Keys.{baseDirectory, streams, target, _}
@@ -34,15 +35,15 @@ object AwsDockerPlugin extends AutoPlugin {
       val user = (daemonUser in Docker).value
       val group = (daemonGroup in Docker).value
       Seq(
-        Cmd("FROM", dockerBaseImage.value),
-        Cmd("WORKDIR", dockerBaseDir.value),
+        from(dockerBaseImage.value),
+        workDir(dockerBaseDir.value),
         makeAdd(dockerBaseDir.value),
         makeChown(user, group, Seq(".")),
-        ExecCmd("RUN", "chmod" :: "u+x" :: dockerEntrypoint.value.toList: _*),
-        Cmd("EXPOSE", dockerExposedPorts.value.mkString(" ")),
-        Cmd("USER", user),
-        ExecCmd("ENTRYPOINT", dockerEntrypoint.value: _*),
-        ExecCmd("CMD", dockerCmd.value: _*)
+        makeExec(dockerEntrypoint.value.headOption.getOrElse(sys.error("Missing entrypoint."))),
+        expose(dockerExposedPorts.value),
+        userCmd(user),
+        entrypoint(dockerEntrypoint.value),
+        execCmd(dockerCmd.value)
       )
     },
     dockerZipTarget := (target in Docker).value / s"${ebLabel.value}.zip",
@@ -167,14 +168,6 @@ object AwsDockerPlugin extends AutoPlugin {
       .getOrElse(sys.error(s"Target must have a parent: $zipTarget"))
     val name = FilenameUtils.getBaseName(zipTarget.getName)
     val mappings = MappingsHelper.contentOf(sourceDir)
-    Archives.makeZip(targetDir, name, mappings, None)
+    Archives.makeZip(targetDir, name, mappings, None, Seq.empty)
   }
-
-  private final def makeAdd(dockerBaseDirectory: String): CmdLike = {
-    val files = dockerBaseDirectory.split(DockerPlugin.UnixSeparatorChar)(1)
-    Cmd("ADD", s"$files /$files")
-  }
-
-  private final def makeChown(daemonUser: String, daemonGroup: String, directories: Seq[String]): CmdLike =
-    ExecCmd("RUN", Seq("chown", "-R", s"$daemonUser:$daemonGroup") ++ directories: _*)
 }
