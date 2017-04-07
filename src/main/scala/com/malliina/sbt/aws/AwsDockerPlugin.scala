@@ -66,7 +66,7 @@ object AwsDockerPlugin extends AutoPlugin {
     buildSpecBuildCommand := "sbt docker:stage",
     buildSpecConf := {
       val artifacts = codeBuildArtifacts.value
-      val stagingDir = unixify((stagingDirectory in Docker).value)
+      val stagingDir = unixify(((stagingDirectory in Docker).value relativeTo baseDirectory.value).get)
       val buildTask = buildSpecBuildCommand.value
       BuildSpecConf(
         build = Seq(buildTask),
@@ -81,11 +81,6 @@ object AwsDockerPlugin extends AutoPlugin {
       streams.value.log.info(s"$buildSpecContents")
       dest
     },
-    codeBuild := {
-      val baseDir = baseDirectory.value
-      val stagingDir = (stagingDirectory in Docker).value
-    },
-    codeBuild := (codeBuild dependsOn (stage in Docker)).value,
     dockerArtifacts := (stagingDirectory in Docker).value.listFiles(),
     dockerArtifacts := (dockerArtifacts dependsOn (stage in Docker)).value,
     codeBuildArtifacts := {
