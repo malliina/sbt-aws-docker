@@ -63,30 +63,32 @@ object AwsDockerPlugin extends AutoPlugin {
     dockerZip := (dockerZip dependsOn (stage in Docker)).value,
     buildSpecFile := baseDirectory.value / BuildSpec.FileName,
     tempSpecFile := baseDirectory.value / "buildspec-temp.yml",
+    buildSpecBuildCommand := "sbt docker:stage",
+    buildSpecConf := {
+      val artifacts = codeBuildArtifacts.value
+      val stagingDir = unixify((stagingDirectory in Docker).value)
+      val buildTask = buildSpecBuildCommand.value
+      BuildSpecConf(
+        build = Seq(buildTask),
+        artifacts = artifacts,
+        baseDirectory = Option(stagingDir)
+      )
+    },
     createBuildSpec := {
-      def fail = sys.error(s"Please specify SBT key ${codeBuildServiceRole.key.label}")
-
-      codeBuildServiceRole.value.fold(fail) { role =>
-        val dest = buildSpecFile.value
-        val artifacts = codeBuildArtifacts.value
-        val buildSpecContents = BuildSpec.writeForArtifact(codeBuild.key.label, role, artifacts, dest)
-        streams.value.log.info(s"$buildSpecContents")
-        dest
-      }
+      val dest = buildSpecFile.value
+      val conf = buildSpecConf.value
+      val buildSpecContents = BuildSpec.write(conf, dest)
+      streams.value.log.info(s"$buildSpecContents")
+      dest
     },
     codeBuild := {
       val baseDir = baseDirectory.value
       val stagingDir = (stagingDirectory in Docker).value
-      val destFiles = dockerArtifacts.value.map(a => baseDir / a.relativeTo(stagingDir).get.toString)
-      failIfExists(destFiles)
-      IO.copyDirectory(stagingDir, baseDir)
     },
     codeBuild := (codeBuild dependsOn (stage in Docker)).value,
     dockerArtifacts := (stagingDirectory in Docker).value.listFiles(),
     dockerArtifacts := (dockerArtifacts dependsOn (stage in Docker)).value,
     codeBuildArtifacts := {
-      def unixify(s: File) = s.toString.replace('\\', '/')
-
       // Prefers failure over flatMap
       dockerArtifacts.value map { p =>
         val baseRelative = unixify(p.relativeTo((stagingDirectory in Docker).value).get)
@@ -109,6 +111,8 @@ object AwsDockerPlugin extends AutoPlugin {
     },
     localEbDeploy := deployLocalZip.value
   )
+
+  def unixify(s: File) = s.toString.replace('\\', '/')
 
   def deployLocalZip = Def.taskDyn {
     deployLocally.dependsOn(renameSpecFile).doFinally(renameSpecFileBack.taskValue)

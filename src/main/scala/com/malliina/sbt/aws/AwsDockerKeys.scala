@@ -20,8 +20,9 @@ trait AwsDockerKeys {
   val tempSpecFile = settingKey[File]("Temporary buildspec-temp.yml")
   val createBuildSpec = taskKey[File]("Builds and returns the AWS CodeBuild buildspec.yaml file")
   val codeBuild = taskKey[Unit]("Prepare for CodePipeline deployment")
-  val codeBuildServiceRole = settingKey[Option[String]]("CodeBuild service role")
   val codeBuildArtifacts = taskKey[Seq[String]]("buildspec.yml entries under array files")
+  val buildSpecConf = taskKey[BuildSpecConf]("Conf for buildspec.yml")
+  val buildSpecBuildCommand = settingKey[String]("Default build command to run in CodeBuild, defaults to 'sbt docker:stage'")
   // Beanstalk keys
   val ebConfigFile = taskKey[File]("Beanstalk config file")
   val tempEbConfigFile = taskKey[File]("Temporary beanstalk config file")
