@@ -13,6 +13,8 @@ import org.apache.commons.io.FilenameUtils
 import sbt.Keys.{baseDirectory, streams, target, _}
 import sbt._
 
+import scala.sys.process.Process
+
 /** Use `createBuildSpec` to write a buildspec.yml suitable for AWS CodeBuild and
   * the Elastic Beanstalk CLI.
   *
